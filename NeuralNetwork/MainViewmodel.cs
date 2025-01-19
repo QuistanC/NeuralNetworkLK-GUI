@@ -118,6 +118,7 @@ public partial class MainViewmodel : ObservableObject
 
         PredictionResult = $"Training completed. Generation: {CurrentGeneration}";
     }
+    //Refactor
 
     [RelayCommand]
     private void UploadImage()
