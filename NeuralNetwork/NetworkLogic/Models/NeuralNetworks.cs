@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Globalization;
+using CommunityToolkit.Mvvm.Input;
 
 namespace NeuralNetwork.NetworkLogic.Models;
 
@@ -16,6 +17,7 @@ namespace NeuralNetwork.NetworkLogic.Models;
         public int NumLayers { get; private set; }
         public int NeuronsPerLayer { get; private set; }
         public string ModelName { get; set; }
+        public int Generation { get; set; }
 
         public NeuralNetworks( int numLayers, int neuronsPerLayer)
         {
@@ -146,7 +148,6 @@ namespace NeuralNetwork.NetworkLogic.Models;
 
         foreach (var layer in Layers)
         {
-            Console.WriteLine($"Saving layer with {layer.Weights.GetLength(0)} rows and {layer.Weights.GetLength(1)} columns.");
 
             for (int i = 0; i < layer.Weights.GetLength(0); i++)
             {
@@ -176,7 +177,8 @@ namespace NeuralNetwork.NetworkLogic.Models;
         // Initialize the network with the sizes
         NeuralNetworks network = new NeuralNetworks(numLayers, neuronsPerLayer)
         {
-            ModelName = modelName
+            ModelName = modelName,
+            Generation = generation
         };
 
         // Load weights and biases for each layer
@@ -210,12 +212,10 @@ namespace NeuralNetwork.NetworkLogic.Models;
                     weights[i, j] = weightRow[j];
                 }
 
-                Console.WriteLine($"Loaded weight row {i + 1}: {string.Join(",", weightRow)}");
             }
 
             // Load biases
             double[] biases = reader.ReadLine().Split(',').Select(x => double.Parse(x, CultureInfo.InvariantCulture)).ToArray();
-            Console.WriteLine($"Loaded biases: {string.Join(",", biases)}");
 
             // Set weights and biases into the corresponding layer
             network.Layers[layerIndex].Weights = weights;

@@ -110,13 +110,15 @@ public partial class MainViewmodel : ObservableObject
         });
 
         // Increment generation
-        CurrentGeneration++;
+        _currentNetwork.Generation++;
+        CurrentGeneration = _currentNetwork.Generation++;
 
         // Save the updated model
         _currentNetwork.SaveModel(_selectedModelDirectory, CurrentGeneration);
         //LoadAllModels();
 
         PredictionResult = $"Training completed. Generation: {CurrentGeneration}";
+        LoadAllModels();
     }
     //Refactor
 
@@ -137,6 +139,7 @@ public partial class MainViewmodel : ObservableObject
         }
     }
 
+    [RelayCommand]
     private void PredictImage(string imagePath)
     {
         // Logic to preprocess the image and call the Predict method in your NeuralNetwork class
@@ -147,6 +150,8 @@ public partial class MainViewmodel : ObservableObject
 
         // Update the ViewModel properties for the predicted label, accuracy, etc.
         PredictionResult = $"Predicted Label: {predictedLabel}";
+        Accuracy = prediction[predictedLabel] * 100;
+        Error = 1 - prediction[predictedLabel];
         // Update other properties like Accuracy or Error if applicable
     }
 
