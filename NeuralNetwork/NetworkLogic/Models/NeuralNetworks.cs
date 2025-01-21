@@ -16,7 +16,7 @@ namespace NeuralNetwork.NetworkLogic.Models;
         public int OutputSize { get; private set; }
         public int NumLayers { get; private set; }
         public int NeuronsPerLayer { get; private set; }
-        public string ModelName { get; set; }
+        public string? ModelName { get; set; }
         public int Generation { get; set; }
 
         public NeuralNetworks( int numLayers, int neuronsPerLayer)
@@ -167,7 +167,7 @@ namespace NeuralNetwork.NetworkLogic.Models;
         using StreamReader reader = new StreamReader(filePath);
 
         // Read the model name and generation (metadata)
-        string modelName = reader.ReadLine();
+        string? modelName = reader.ReadLine();
         int generation = int.Parse(reader.ReadLine());
 
         // Read the number of layers and neurons per layer

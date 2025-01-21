@@ -9,27 +9,26 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using NeuralNetwork.NetworkLogic.Models;
 using CommunityToolkit.Mvvm;
 using CommunityToolkit.Mvvm.Input;
+using System.Drawing;
 
 namespace NeuralNetwork;
 
 public partial class MainViewmodel : ObservableObject
 {
-    [ObservableProperty]
-    private BitmapImage _originalImage;
 
     [ObservableProperty]
-    private string _predictionResult;
+    private string? _predictionResult;
 
     [ObservableProperty]
-    private double _accuracy;
+    private double? _accuracy;
 
     [ObservableProperty]
     private double _error;
 
     [ObservableProperty]
-    private string _selectedModel;
+    private string? _selectedModel;
 
-    private NeuralNetworks _currentNetwork;
+    private NeuralNetworks? _currentNetwork;
     private string _selectedModelDirectory;
 
     [ObservableProperty]
@@ -133,7 +132,7 @@ public partial class MainViewmodel : ObservableObject
 
         if (openFileDialog.ShowDialog() == true)
         {
-            string imagePath = openFileDialog.FileName;
+            string? imagePath = openFileDialog.FileName;
             // Process the image for prediction
             PredictImage(imagePath);
         }
@@ -143,12 +142,11 @@ public partial class MainViewmodel : ObservableObject
     private void PredictImage(string imagePath)
     {
         // Logic to preprocess the image and call the Predict method in your NeuralNetwork class
-        var processedImage = ImageConverter.ImageToArray(imagePath);
-        var prediction = _currentNetwork.Predict(processedImage);
+        var processedImage = NetworkLogic.Utilities.ImageHelperMethods.ImageConverter.ImageToArray(imagePath);
+        var prediction = _currentNetwork!.Predict(processedImage);
 
         int predictedLabel = Array.IndexOf(prediction, prediction.Max());
 
-        // Update the ViewModel properties for the predicted label, accuracy, etc.
         PredictionResult = $"Predicted Label: {predictedLabel}";
         Accuracy = prediction[predictedLabel] * 100;
         Error = 1 - prediction[predictedLabel];
@@ -164,30 +162,37 @@ public partial class MainViewmodel : ObservableObject
             return;
         }
 
-        string modelPath = Path.Combine(_selectedModelDirectory, $"{SelectedModel}.txt");
+        string? modelPath = Path.Combine(_selectedModelDirectory, $"{SelectedModel}.txt");
         _currentNetwork = NeuralNetworks.LoadModel(modelPath);
         PredictionResult = $"Model {SelectedModel} loaded.";
     }
 
     private double[][] GenerateTrainingData()
     {
-        string trainingDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TrainingData");
+        string? trainingDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TrainingData");
 
-        string trainImagesPath = Path.Combine(trainingDataPath, "train-images.idx3-ubyte");
+        string? trainImagesPath = Path.Combine(trainingDataPath, "train-images.idx3-ubyte");
 
         double[][] trainImages = IdexFileReader.LoadImages(trainImagesPath);
         int originalWidth = 28, originalHeight = 28;
         int poolSize = 2, stride = 2;
 
         double[][] pooledTrainImages = trainImages
-            .Select(image => Pooling.ApplyPooling(image, originalWidth, originalHeight, poolSize, stride))
-            .ToArray();
+            .Select(image => {
+            
+                Bitmap bitmap = NetworkLogic.Utilities.ImageHelperMethods.ImageConverter.ArrayToBitmap(image, originalHeight, originalWidth);
+
+                double[] grayscaledImage = GrayscaleMethod.ImageToGrayscaleArray(bitmap);
+
+                return Pooling.ApplyPooling(grayscaledImage, originalWidth, originalHeight, poolSize, stride);
+   
+            }).ToArray();
         return pooledTrainImages;
     }
     private double[][] GenerateTrainingLabels()
     {
-        string trainingDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TrainingData");
-        string trainLabelsPath = Path.Combine(trainingDataPath, "train-labels.idx1-ubyte");
+        string? trainingDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TrainingData");
+        string? trainLabelsPath = Path.Combine(trainingDataPath, "train-labels.idx1-ubyte");
         int[] trainLabels = IdexFileReader.LoadLabels(trainLabelsPath);
         double[][] trainLabelsOneHot = IdexFileReader.OneHotEncodeLabels(trainLabels, 10);
 

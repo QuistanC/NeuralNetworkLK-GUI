@@ -41,56 +41,22 @@ public class ImageConverter
         return pixelValues;
     }
 
-    public static Bitmap ArrayToImage(byte[,,] pixelArray)
+    public static Bitmap ArrayToBitmap(double[] pixelArray, int width, int height)
     {
-#pragma warning disable CA1416 // Validate platform compatibility
+        Bitmap bitmap = new Bitmap(width, height);
 
-        int width = pixelArray.GetLength(1);
-        int height = pixelArray.GetLength(0);
-        int stride = width % 4 == 0 ? width : width + 4 - width % 4;
-        int bytesPerPixel = 3;
-
-        byte[] bytes = new byte[stride * height * bytesPerPixel];
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                int offset = (y * stride + x) * bytesPerPixel;
-                bytes[offset + 0] = pixelArray[y, x, 2]; //blue
-                bytes[offset + 1] = pixelArray[y, x, 1]; //green
-                bytes[offset + 2] = pixelArray[y, x, 0]; //red
+                int intensity = (int)(pixelArray[y * width + x] * 255);
+                Color color = Color.FromArgb(intensity, intensity, intensity);
+                bitmap.SetPixel(x, y, color);
             }
         }
 
-        PixelFormat formatOutput = PixelFormat.Format24bppRgb;
-        Rectangle rect = new Rectangle(0, 0, width, height);
-        Bitmap image = new(stride, height, formatOutput);
-        BitmapData imageData = image.LockBits(rect, ImageLockMode.ReadOnly, formatOutput);
-        Marshal.Copy(bytes, 0, imageData.Scan0, bytes.Length);
-        image.UnlockBits(imageData);
-
-        Bitmap image2 = new(width, height, PixelFormat.Format32bppArgb);
-        Graphics g = Graphics.FromImage(image2);
-        g.DrawImage(image, 0, 0);
-
-#pragma warning restore CA1416 // Validate platform compatibility
-
-        return image2;
+        return bitmap;
     }
-
-    //public byte[] imageToByteArray(Image imageIn)
-    //{
-    //    MemoryStream ms = new MemoryStream();
-    //    imageIn.Save(ms, ImageFormat.Gif);
-    //    return ms.ToArray();
-    //}
-
-    //public Image byteArrayToImage(byte[] byteArrayIn)
-    //{
-    //    MemoryStream ms = new MemoryStream(byteArrayIn);
-    //    Image returnImage = Image.FromStream(ms);
-    //    return returnImage;
-    //}
 
     public static double[] ImageToArray(string imagePath)
     {
@@ -117,7 +83,7 @@ public class ImageConverter
                     byte[] pixelBuffer = new byte[stride * resized.Height];
 
                     System.Runtime.InteropServices.Marshal.Copy(bitmapData.Scan0, pixelBuffer, 0, pixelBuffer.Length);
-                    resized.UnlockBits(bitmapData); // Unlock after copying
+                    resized.UnlockBits(bitmapData);
 
                     for (int y = 0; y < 28; y++)
                     {
